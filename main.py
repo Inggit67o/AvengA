@@ -933,3 +933,88 @@ def save_drafts_csv(session: AvengASession, path: str) -> None:
     export_drafts_to_csv(session.drafts, path)
 
 
+def save_records_csv(session: AvengASession, path: str) -> None:
+    export_records_to_csv(session.records, path)
+
+
+# ---------------------------------------------------------------------------
+# DISPLAY HELPERS
+# ---------------------------------------------------------------------------
+
+def print_draft(d: SignalDraft) -> None:
+    print(format_draft_one_line(d))
+
+
+def print_record(r: SignalRecord) -> None:
+    print(format_record_one_line(r))
+
+
+def print_session_summary(session: AvengASession) -> None:
+    print(build_session_report(session))
+
+
+# ---------------------------------------------------------------------------
+# CONTRACT ADDRESSES (HulkAI deployment — placeholder)
+# ---------------------------------------------------------------------------
+# In production set via env or config; not hardcoded for mainnet.
+# ---------------------------------------------------------------------------
+
+def get_contract_address_env_key() -> str:
+    return "HULKAI_CONTRACT_ADDRESS"
+
+
+def get_default_chain_id() -> int:
+    return 1
+
+
+# ---------------------------------------------------------------------------
+# CONVICTION SCORE HELPERS
+# ---------------------------------------------------------------------------
+
+def average_vote_score(record: SignalRecord) -> float:
+    if record.vote_count == 0:
+        return 0.0
+    return record.vote_sum / record.vote_count
+
+
+def format_conviction_label(tier: int) -> str:
+    return get_conviction_label(tier)
+
+
+def format_asset_label(asset_class: int) -> str:
+    return get_asset_class_label(asset_class)
+
+
+# ---------------------------------------------------------------------------
+# RUNBOOK EXTENDED
+# ---------------------------------------------------------------------------
+
+RUNBOOK_EXTRA = [
+    "6. Export drafts/records to CSV via export_drafts_to_csv / export_records_to_csv.",
+    "7. Use derive_signal_id(creator, nonce, salt) for deterministic signal IDs.",
+    "8. Fee on vote: feeBps (e.g. 50 = 0.5%) of msg.value goes to smashTreasury.",
+]
+
+
+def get_full_runbook() -> List[str]:
+    return list(RUNBOOK_STEPS) + list(RUNBOOK_EXTRA)
+
+
+def print_full_runbook() -> None:
+    for step in get_full_runbook():
+        print(step)
+
+
+# ---------------------------------------------------------------------------
+# BATCH ENCODING
+# ---------------------------------------------------------------------------
+
+def encode_drafts_for_register(
+    drafts: List[SignalDraft],
+    creator_hex: str,
+    nonce_start: int,
+    salt_hex: str,
+) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    for i, d in enumerate(drafts):
+        signal_id = derive_signal_id(creator_hex, nonce_start + i, salt_hex)
