@@ -1103,3 +1103,88 @@ def session_compact_summary(session: AvengASession) -> str:
     return (
         f"Drafts={len(session.drafts)} Records={len(session.records)} "
         f"TotalSizeWei={total_size} ({format_wei(total_size)})"
+    )
+
+
+# ---------------------------------------------------------------------------
+# CHECK REGISTER / VOTE (offchain)
+# ---------------------------------------------------------------------------
+
+def check_register(
+    signal_id_nonzero: bool,
+    asset_class: int,
+    conviction_tier: int,
+    total_signals: int = 0,
+    namespace_frozen: bool = False,
+) -> bool:
+    return would_register_succeed_offchain(
+        signal_id_nonzero, asset_class, conviction_tier, total_signals, namespace_frozen
+    )
+
+
+def check_vote(
+    signal_exists: bool,
+    signal_retired: bool,
+    has_voted: bool,
+    score: int,
+) -> bool:
+    return would_vote_succeed_offchain(signal_exists, signal_retired, has_voted, score)
+
+
+# ---------------------------------------------------------------------------
+# VERSION / BUILD INFO
+# ---------------------------------------------------------------------------
+
+def get_app_name() -> str:
+    return APP_NAME
+
+
+def get_app_version() -> str:
+    return APP_VERSION
+
+
+def get_tagline() -> str:
+    return HULK_TAGLINE
+
+
+def get_build_info() -> Dict[str, str]:
+    return {
+        "app": APP_NAME,
+        "version": APP_VERSION,
+        "tagline": HULK_TAGLINE,
+    }
+
+
+# ---------------------------------------------------------------------------
+# ADDITIONAL VIEW HELPERS
+# ---------------------------------------------------------------------------
+
+def draft_asset_class(d: SignalDraft) -> int:
+    return d.asset_class
+
+
+def draft_conviction_tier(d: SignalDraft) -> int:
+    return d.conviction_tier
+
+
+def draft_size_wei(d: SignalDraft) -> int:
+    return d.size_wei
+
+
+def record_signal_id(r: SignalRecord) -> str:
+    return r.signal_id
+
+
+def record_creator(r: SignalRecord) -> str:
+    return r.creator
+
+
+def record_vote_count(r: SignalRecord) -> int:
+    return r.vote_count
+
+
+def record_vote_sum(r: SignalRecord) -> int:
+    return r.vote_sum
+
+
+def record_average_score(r: SignalRecord) -> float:
