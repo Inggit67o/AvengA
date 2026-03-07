@@ -1358,3 +1358,88 @@ def app_version() -> str:
 def tagline() -> str:
     return get_tagline()
 
+
+def constant_max_asset() -> int:
+    return max_asset_class()
+
+
+def constant_max_conviction() -> int:
+    return max_conviction()
+
+
+def constant_max_vote() -> int:
+    return max_vote_score()
+
+
+def constant_min_vote() -> int:
+    return min_vote_score()
+
+
+def constant_max_fee_bps() -> int:
+    return max_fee_bps()
+
+
+def constant_fee_denom() -> int:
+    return fee_denom_bps()
+
+
+def draft_report(d: SignalDraft) -> str:
+    return build_draft_report(d)
+
+
+def record_report(r: SignalRecord) -> str:
+    return format_record_one_line(r)
+
+
+def session_report(session: AvengASession) -> str:
+    return build_session_report(session)
+
+
+def session_summary(session: AvengASession) -> str:
+    return session_compact_summary(session)
+
+
+def load_session(path: str) -> AvengASession:
+    return load_session_from_file(path)
+
+
+def save_session(session: AvengASession, path: str) -> None:
+    save_session_to_file(session, path)
+
+
+def export_drafts(drafts: List[SignalDraft], path: str) -> None:
+    export_drafts_to_csv(drafts, path)
+
+
+def export_records(records: List[SignalRecord], path: str) -> None:
+    export_records_to_csv(records, path)
+
+
+def gas_estimates() -> Dict[str, int]:
+    return get_gas_estimates()
+
+
+def wei_fmt(wei: int) -> str:
+    return format_wei(wei)
+
+
+def ether_from_wei(wei: int) -> float:
+    return wei_to_ether(wei)
+
+
+def wei_from_ether(ether: float) -> int:
+    return ether_to_wei(ether)
+
+
+def clamp_asset(i: int) -> int:
+    return clamp_asset_class(i)
+
+
+def clamp_conv(i: int) -> int:
+    return clamp_conviction(i)
+
+
+def clamp_score(s: int) -> int:
+    return clamp_vote_score(s)
+
+
