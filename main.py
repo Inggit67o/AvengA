@@ -763,3 +763,88 @@ HULKAI_ABI_REGISTER = [
             {"internalType": "bytes32", "name": "signalId", "type": "bytes32"},
             {"internalType": "uint8", "name": "assetClass", "type": "uint8"},
             {"internalType": "uint8", "name": "convictionTier", "type": "uint8"},
+            {"internalType": "uint128", "name": "sizeWei", "type": "uint128"},
+        ],
+        "name": "registerSignal",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    }
+]
+
+HULKAI_ABI_VOTE = [
+    {
+        "inputs": [
+            {"internalType": "bytes32", "name": "signalId", "type": "bytes32"},
+            {"internalType": "uint8", "name": "score", "type": "uint8"},
+        ],
+        "name": "voteConviction",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function",
+    }
+]
+
+HULKAI_ABI_SMASH = [
+    {
+        "inputs": [{"internalType": "bytes32", "name": "signalId", "type": "bytes32"}],
+        "name": "smashPick",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function",
+    }
+]
+
+
+# ---------------------------------------------------------------------------
+# CONSTANTS REFERENCE
+# ---------------------------------------------------------------------------
+
+def get_asset_class_labels() -> List[str]:
+    return list(ASSET_CLASS_LABELS)
+
+
+def get_conviction_labels() -> List[str]:
+    return list(CONVICTION_TIER_LABELS)
+
+
+def max_asset_class() -> int:
+    return HULK_MAX_ASSET_CLASS
+
+
+def max_conviction() -> int:
+    return HULK_MAX_CONVICTION
+
+
+def max_vote_score() -> int:
+    return HULK_MAX_VOTE_SCORE
+
+
+def min_vote_score() -> int:
+    return HULK_MIN_VOTE_SCORE
+
+
+def max_fee_bps() -> int:
+    return HULK_MAX_FEE_BPS
+
+
+def fee_denom_bps() -> int:
+    return HULK_FEE_DENOM_BPS
+
+
+# ---------------------------------------------------------------------------
+# WEB3 STUB (optional integration)
+# ---------------------------------------------------------------------------
+
+def submit_register_stub(
+    contract_address: str,
+    signal_id_hex: str,
+    asset_class: int,
+    conviction_tier: int,
+    size_wei: int,
+    signer_private_key: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Stub: in production use web3.eth.contract and sign transaction."""
+    return {
+        "contract": contract_address,
+        "call": abi_encode_register_signal(signal_id_hex, asset_class, conviction_tier, size_wei),
