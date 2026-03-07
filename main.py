@@ -593,3 +593,88 @@ def drafts_to_markdown(drafts: List[SignalDraft]) -> str:
 
 
 def session_to_markdown(session: AvengASession) -> str:
+    parts = ["# AvengA Session — Hulk Smash", "", drafts_to_markdown(session.drafts), ""]
+    if session.records:
+        parts.append("## Records")
+        for r in session.records:
+            parts.append(f"- {format_record_one_line(r)}")
+    return "\n".join(parts)
+
+
+# ---------------------------------------------------------------------------
+# CLI FLAGS
+# ---------------------------------------------------------------------------
+
+CLI_DEMO_FLAG = "--demo"
+CLI_HELP_FLAG = "--help"
+CLI_VERSION_FLAG = "--version"
+CLI_GAS_FLAG = "--gas"
+CLI_RUNBOOK_FLAG = "--runbook"
+CLI_ERRORS_FLAG = "--errors"
+CLI_LOAD_FLAG = "--load"
+CLI_SAVE_FLAG = "--save"
+
+
+def handle_cli_runbook() -> None:
+    print_runbook()
+
+
+def handle_cli_errors() -> None:
+    print_error_codes()
+
+
+# ---------------------------------------------------------------------------
+# REFERENCE: HulkAI CONTRACT BOUNDS
+# ---------------------------------------------------------------------------
+# assetClass: 0..12
+# convictionTier: 0..7
+# sizeWei: uint128
+# vote score: 1..10
+# feeBps: 0..500 (max 5%)
+# ---------------------------------------------------------------------------
+
+def would_register_succeed_offchain(
+    signal_id_nonzero: bool,
+    asset_class: int,
+    conviction_tier: int,
+    total_signals: int,
+    namespace_frozen: bool,
+    max_signals: int = 300_000,
+) -> bool:
+    if not signal_id_nonzero:
+        return False
+    if asset_class < 0 or asset_class > HULK_MAX_ASSET_CLASS:
+        return False
+    if conviction_tier < 0 or conviction_tier > HULK_MAX_CONVICTION:
+        return False
+    if total_signals >= max_signals:
+        return False
+    if namespace_frozen:
+        return False
+    return True
+
+
+def would_vote_succeed_offchain(
+    signal_exists: bool,
+    signal_retired: bool,
+    has_voted: bool,
+    score: int,
+) -> bool:
+    if not signal_exists or signal_retired or has_voted:
+        return False
+    if score < HULK_MIN_VOTE_SCORE or score > HULK_MAX_VOTE_SCORE:
+        return False
+    return True
+
+
+# ---------------------------------------------------------------------------
+# EXTRA DEMO FLOWS
+# ---------------------------------------------------------------------------
+
+def create_btc_eth_draft() -> SignalDraft:
+    return SignalDraft(asset_class=0, conviction_tier=3, size_wei=1 * 10**18, notes="BTC/ETH focus")
+
+
+def create_defi_draft() -> SignalDraft:
+    return SignalDraft(asset_class=3, conviction_tier=2, size_wei=500 * 10**15, notes="DeFi")
+
