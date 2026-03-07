@@ -253,3 +253,88 @@ def get_gas_estimates() -> Dict[str, int]:
 
 
 # ---------------------------------------------------------------------------
+# DEMO / DEFAULT DATA
+# ---------------------------------------------------------------------------
+
+def create_demo_draft() -> SignalDraft:
+    return SignalDraft(
+        asset_class=random.randint(0, min(3, HULK_MAX_ASSET_CLASS)),
+        conviction_tier=random.randint(0, min(4, HULK_MAX_CONVICTION)),
+        size_wei=random.randint(1e18, 10 * 1e18),
+        notes="Demo Hulk Smash pick",
+    )
+
+
+def create_demo_session(num_drafts: int = 5) -> AvengASession:
+    session = AvengASession()
+    for _ in range(num_drafts):
+        session.drafts.append(create_demo_draft())
+    return session
+
+
+def run_demo() -> None:
+    session = create_demo_session()
+    print(build_session_report(session))
+    path = os.path.abspath("avenga_demo_session.json")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(session.to_json())
+    print(f"\nDemo session saved to {path}")
+
+
+# ---------------------------------------------------------------------------
+# CLI
+# ---------------------------------------------------------------------------
+
+def print_usage() -> None:
+    print(f"{APP_NAME} v{APP_VERSION} — {HULK_TAGLINE}")
+    print("Usage: python AvengA.py [--demo] [--help] [--version] [--gas]")
+    print("  --demo   run demo and save avenga_demo_session.json")
+    print("  --gas    print gas estimates for HulkAI")
+    print("  --help   this message")
+    print("  No args  interactive wizard (register drafts, show report)")
+
+
+def main(args: List[str]) -> int:
+    if "--help" in args or "-h" in args:
+        print_usage()
+        return 0
+    if "--version" in args or "-v" in args:
+        print(f"{APP_NAME} {APP_VERSION}")
+        return 0
+    if "--demo" in args:
+        run_demo()
+        return 0
+    if "--gas" in args:
+        for name, gas in get_gas_estimates().items():
+            print(f"  {name}: {gas}")
+        return 0
+
+    session = AvengASession()
+    print(f"Welcome to {APP_NAME} — {HULK_TAGLINE}\n")
+    try:
+        n = input("How many signal drafts to add? [3] ").strip() or "3"
+        num = int(n)
+    except ValueError:
+        num = 3
+    num = max(0, min(num, 20))
+    for i in range(num):
+        ac = random.randint(0, min(5, HULK_MAX_ASSET_CLASS))
+        ct = random.randint(0, min(4, HULK_MAX_CONVICTION))
+        size = random.randint(0, 5 * 10**18)
+        session.drafts.append(SignalDraft(asset_class=ac, conviction_tier=ct, size_wei=size, notes=""))
+    print(build_session_report(session))
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# ERROR CODES (HulkAI contract)
+# ---------------------------------------------------------------------------
+
+ERROR_CODES = {
+    "HulkAI_NotOwner": "Caller is not owner",
+    "HulkAI_NotGammaOracle": "Caller is not gamma oracle",
+    "HulkAI_NotBannerGuardian": "Caller is not banner guardian",
+    "HulkAI_ZeroAddress": "Zero address not allowed",
+    "HulkAI_ZeroSignal": "Zero signal id not allowed",
+    "HulkAI_AlreadyExists": "Signal already registered",
+    "HulkAI_NotFound": "Signal not found or retired",
