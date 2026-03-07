@@ -1273,3 +1273,88 @@ def signal_id_valid_hex(s: str) -> bool:
 
 def session_has_drafts(session: AvengASession) -> bool:
     return len(session.drafts) > 0
+
+
+def session_has_records(session: AvengASession) -> bool:
+    return len(session.records) > 0
+
+
+def session_is_empty(session: AvengASession) -> bool:
+    return len(session.drafts) == 0 and len(session.records) == 0
+
+
+# ---------------------------------------------------------------------------
+# CONVICTION / ASSET FILTERS
+# ---------------------------------------------------------------------------
+
+def filter_drafts_by_asset(drafts: List[SignalDraft], asset_class: int) -> List[SignalDraft]:
+    return [d for d in drafts if d.asset_class == asset_class]
+
+
+def filter_drafts_by_conviction(drafts: List[SignalDraft], conviction_tier: int) -> List[SignalDraft]:
+    return [d for d in drafts if d.conviction_tier == conviction_tier]
+
+
+def filter_records_smashed(records: List[SignalRecord]) -> List[SignalRecord]:
+    return [r for r in records if r.smashed]
+
+
+def filter_records_active(records: List[SignalRecord]) -> List[SignalRecord]:
+    return [r for r in records if not r.retired]
+
+
+# ---------------------------------------------------------------------------
+# FEE HELPERS
+# ---------------------------------------------------------------------------
+
+def compute_fee(value_wei: int, fee_bps: int = DEFAULT_FEE_BPS) -> int:
+    return required_fee_wei(value_wei, fee_bps)
+
+
+def compute_refund(value_wei: int, fee_bps: int = DEFAULT_FEE_BPS) -> int:
+    return refund_wei(value_wei, fee_bps)
+
+
+def quote_fee(value_wei: int, fee_bps: int = DEFAULT_FEE_BPS) -> int:
+    return quote_fee_for_amount(value_wei, fee_bps)
+
+
+# ---------------------------------------------------------------------------
+# MARKDOWN EXPORT
+# ---------------------------------------------------------------------------
+
+def session_markdown(session: AvengASession) -> str:
+    return session_to_markdown(session)
+
+
+def drafts_markdown(drafts: List[SignalDraft]) -> str:
+    return drafts_to_markdown(drafts)
+
+
+# ---------------------------------------------------------------------------
+# RUNBOOK ALIASES
+# ---------------------------------------------------------------------------
+
+def runbook_steps() -> List[str]:
+    return get_runbook()
+
+
+def runbook_full() -> List[str]:
+    return get_full_runbook()
+
+
+# ---------------------------------------------------------------------------
+# MISC ALIASES
+# ---------------------------------------------------------------------------
+
+def app_name() -> str:
+    return get_app_name()
+
+
+def app_version() -> str:
+    return get_app_version()
+
+
+def tagline() -> str:
+    return get_tagline()
+
