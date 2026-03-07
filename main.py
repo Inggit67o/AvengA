@@ -1443,3 +1443,87 @@ def clamp_score(s: int) -> int:
     return clamp_vote_score(s)
 
 
+def validate_draft_quiet(d: SignalDraft) -> bool:
+    return len(validate_draft(d)) == 0
+
+
+def validate_vote_quiet(score: int) -> bool:
+    return len(validate_vote_score(score)) == 0
+
+
+def asset_label(i: int) -> str:
+    return get_asset_class_label(i)
+
+
+def conviction_label(i: int) -> str:
+    return get_conviction_label(i)
+
+
+def draft_one_line(d: SignalDraft) -> str:
+    return format_draft_one_line(d)
+
+
+def record_one_line(r: SignalRecord) -> str:
+    return format_record_one_line(r)
+
+
+def build_info() -> Dict[str, str]:
+    return get_build_info()
+
+
+def contract_bounds() -> Dict[str, int]:
+    return {
+        "max_asset_class": HULK_MAX_ASSET_CLASS,
+        "max_conviction": HULK_MAX_CONVICTION,
+        "min_vote_score": HULK_MIN_VOTE_SCORE,
+        "max_vote_score": HULK_MAX_VOTE_SCORE,
+        "max_fee_bps": HULK_MAX_FEE_BPS,
+        "fee_denom_bps": HULK_FEE_DENOM_BPS,
+    }
+
+
+def bounds_max_asset() -> int:
+    return HULK_MAX_ASSET_CLASS
+
+
+def bounds_max_conviction() -> int:
+    return HULK_MAX_CONVICTION
+
+
+def bounds_vote_min() -> int:
+    return HULK_MIN_VOTE_SCORE
+
+
+def bounds_vote_max() -> int:
+    return HULK_MAX_VOTE_SCORE
+
+
+def bounds_fee_max_bps() -> int:
+    return HULK_MAX_FEE_BPS
+
+
+def bounds_fee_denom_bps() -> int:
+    return HULK_FEE_DENOM_BPS
+
+
+def HULK_TAGLINE_constant() -> str:
+    return HULK_TAGLINE
+
+
+def APP_NAME_constant() -> str:
+    return APP_NAME
+
+
+def APP_VERSION_constant() -> str:
+    return APP_VERSION
+
+
+# AvengA — Hulk Smash. End of module.
+# Contract: HulkAI.sol (Gamma-powered signal registry).
+# Use: --demo, --gas, --runbook, --errors, --help, --version.
+# Gas: registerSignal ~280k, smashPick ~85k, voteConviction ~140k.
+
+
+def _module_footer() -> None:
+    """Placeholder for module finalization."""
+    pass
