@@ -423,3 +423,88 @@ def decode_session_from_dict(data: Dict[str, Any]) -> AvengASession:
 
 
 def load_session_from_file(path: str) -> AvengASession:
+    with open(path, "r", encoding="utf-8") as f:
+        return decode_session_from_dict(json.load(f))
+
+
+def save_session_to_file(session: AvengASession, path: str) -> None:
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(session.to_json())
+
+
+# ---------------------------------------------------------------------------
+# CSV EXPORT
+# ---------------------------------------------------------------------------
+
+import csv as _csv
+
+
+def export_drafts_to_csv(drafts: List[SignalDraft], path: str) -> None:
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = _csv.writer(f)
+        w.writerow(["asset_class", "conviction_tier", "size_wei", "notes"])
+        for d in drafts:
+            w.writerow([d.asset_class, d.conviction_tier, d.size_wei, (d.notes or "")[:200]])
+
+
+def export_records_to_csv(records: List[SignalRecord], path: str) -> None:
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        w = _csv.writer(f)
+        w.writerow(
+            [
+                "signal_id",
+                "creator",
+                "asset_class",
+                "conviction_tier",
+                "size_wei",
+                "created_at",
+                "smashed",
+                "retired",
+                "vote_count",
+                "vote_sum",
+            ]
+        )
+        for r in records:
+            w.writerow(
+                [
+                    r.signal_id,
+                    r.creator,
+                    r.asset_class,
+                    r.conviction_tier,
+                    r.size_wei,
+                    r.created_at,
+                    r.smashed,
+                    r.retired,
+                    r.vote_count,
+                    r.vote_sum,
+                ]
+            )
+
+
+# ---------------------------------------------------------------------------
+# RUNBOOK
+# ---------------------------------------------------------------------------
+
+RUNBOOK_STEPS = [
+    "1. Create signal drafts (asset class, conviction tier, size_wei).",
+    "2. Derive signal IDs (creator + nonce + salt).",
+    "3. Submit registerSignal to HulkAI (or use AvengA CLI / web3).",
+    "4. Gamma oracle can smashPick to approve; guardian can retireSignal.",
+    "5. Anyone can voteConviction once per signal (1..10) with optional fee.",
+]
+
+
+def get_runbook() -> List[str]:
+    return list(RUNBOOK_STEPS)
+
+
+def print_runbook() -> None:
+    for step in RUNBOOK_STEPS:
+        print(step)
+
+
+# ---------------------------------------------------------------------------
+# BATCH HELPERS
+# ---------------------------------------------------------------------------
+
+def build_drafts_batch(
