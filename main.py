@@ -338,3 +338,88 @@ ERROR_CODES = {
     "HulkAI_ZeroSignal": "Zero signal id not allowed",
     "HulkAI_AlreadyExists": "Signal already registered",
     "HulkAI_NotFound": "Signal not found or retired",
+    "HulkAI_AlreadyRetired": "Signal already retired",
+    "HulkAI_InvalidAssetClass": "Asset class out of range",
+    "HulkAI_InvalidConviction": "Conviction tier out of range",
+    "HulkAI_InvalidVoteScore": "Vote score must be 1..10",
+    "HulkAI_Reentrant": "Reentrancy detected",
+    "HulkAI_TooManySignals": "Max signals reached",
+    "HulkAI_AlreadyVoted": "Caller already voted on this signal",
+    "HulkAI_InvalidFeeBps": "Fee bps exceeds max",
+    "HulkAI_NamespaceFrozen": "Namespace is frozen",
+    "HulkAI_InsufficientFee": "Insufficient fee sent",
+    "HulkAI_InvalidIndex": "Index out of range",
+    "HulkAI_NotSmashed": "Signal is not smashed",
+}
+
+
+def get_error_description(code: str) -> str:
+    return ERROR_CODES.get(code, "Unknown error")
+
+
+def print_error_codes() -> None:
+    for code, desc in ERROR_CODES.items():
+        print(f"  {code}: {desc}")
+
+
+# ---------------------------------------------------------------------------
+# CONFIG / BOUNDS
+# ---------------------------------------------------------------------------
+
+DEFAULT_MIN_ASSET_CLASS = 0
+DEFAULT_MAX_ASSET_CLASS = 12
+DEFAULT_MIN_CONVICTION = 0
+DEFAULT_MAX_CONVICTION = 7
+DEFAULT_MIN_SIZE_WEI = 0
+DEFAULT_MAX_SIZE_WEI = 10**24
+MAX_DRAFTS_PER_SESSION = 64
+
+
+def session_to_register_params(draft: SignalDraft, signal_id_hex: str) -> Dict[str, Any]:
+    return {
+        "signal_id": signal_id_hex,
+        "asset_class": clamp_asset_class(draft.asset_class),
+        "conviction_tier": clamp_conviction(draft.conviction_tier),
+        "size_wei": max(0, draft.size_wei),
+    }
+
+
+# ---------------------------------------------------------------------------
+# STATE ENCODE / DECODE
+# ---------------------------------------------------------------------------
+
+def encode_session_to_dict(session: AvengASession) -> Dict[str, Any]:
+    return dataclasses.asdict(session)
+
+
+def decode_session_from_dict(data: Dict[str, Any]) -> AvengASession:
+    drafts: List[SignalDraft] = []
+    for d in data.get("drafts", []):
+        drafts.append(
+            SignalDraft(
+                asset_class=int(d.get("asset_class", 0)),
+                conviction_tier=int(d.get("conviction_tier", 0)),
+                size_wei=int(d.get("size_wei", 0)),
+                notes=str(d.get("notes", "")),
+            )
+        )
+    records: List[SignalRecord] = []
+    for r in data.get("records", []):
+        records.append(
+            SignalRecord(
+                signal_id=str(r.get("signal_id", "")),
+                creator=str(r.get("creator", "")),
+                asset_class=int(r.get("asset_class", 0)),
+                conviction_tier=int(r.get("conviction_tier", 0)),
+                size_wei=int(r.get("size_wei", 0)),
+                created_at=int(r.get("created_at", 0)),
+                smashed=bool(r.get("smashed", False)),
+                retired=bool(r.get("retired", False)),
+                vote_count=int(r.get("vote_count", 0)),
+                vote_sum=int(r.get("vote_sum", 0)),
+            )
+        )
+    return AvengASession(drafts=drafts, records=records, notes=str(data.get("notes", "")))
+
+
+def load_session_from_file(path: str) -> AvengASession:
