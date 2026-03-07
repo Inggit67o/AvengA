@@ -508,3 +508,88 @@ def print_runbook() -> None:
 # ---------------------------------------------------------------------------
 
 def build_drafts_batch(
+    num: int,
+    asset_class_range: Tuple[int, int] = (0, 5),
+    conviction_range: Tuple[int, int] = (0, 5),
+    size_min: int = 0,
+    size_max: int = 5 * 10**18,
+) -> List[SignalDraft]:
+    drafts: List[SignalDraft] = []
+    for _ in range(min(num, MAX_DRAFTS_PER_SESSION)):
+        ac = random.randint(asset_class_range[0], min(asset_class_range[1], HULK_MAX_ASSET_CLASS))
+        ct = random.randint(conviction_range[0], min(conviction_range[1], HULK_MAX_CONVICTION))
+        size = random.randint(size_min, size_max) if size_max > size_min else size_min
+        drafts.append(SignalDraft(asset_class=ac, conviction_tier=ct, size_wei=size, notes=""))
+    return drafts
+
+
+def build_session_from_dicts(
+    drafts_data: List[Dict[str, Any]],
+    records_data: Optional[List[Dict[str, Any]]] = None,
+) -> AvengASession:
+    drafts: List[SignalDraft] = []
+    for d in drafts_data:
+        drafts.append(
+            SignalDraft(
+                asset_class=int(d.get("asset_class", 0)),
+                conviction_tier=int(d.get("conviction_tier", 0)),
+                size_wei=int(d.get("size_wei", 0)),
+                notes=str(d.get("notes", "")),
+            )
+        )
+    records: List[SignalRecord] = []
+    for r in (records_data or []):
+        records.append(
+            SignalRecord(
+                signal_id=str(r.get("signal_id", "")),
+                creator=str(r.get("creator", "")),
+                asset_class=int(r.get("asset_class", 0)),
+                conviction_tier=int(r.get("conviction_tier", 0)),
+                size_wei=int(r.get("size_wei", 0)),
+                created_at=int(r.get("created_at", 0)),
+                smashed=bool(r.get("smashed", False)),
+                retired=bool(r.get("retired", False)),
+                vote_count=int(r.get("vote_count", 0)),
+                vote_sum=int(r.get("vote_sum", 0)),
+            )
+        )
+    return AvengASession(drafts=drafts, records=records)
+
+
+# ---------------------------------------------------------------------------
+# FEE CALCULATION
+# ---------------------------------------------------------------------------
+
+def required_fee_wei(value_wei: int, fee_bps: int = 50) -> int:
+    return (value_wei * fee_bps) // HULK_FEE_DENOM_BPS
+
+
+def refund_wei(value_wei: int, fee_bps: int = 50) -> int:
+    return value_wei - required_fee_wei(value_wei, fee_bps)
+
+
+def quote_fee_for_amount(amount_wei: int, fee_bps: int = 50) -> int:
+    return (amount_wei * fee_bps) // HULK_FEE_DENOM_BPS
+
+
+# ---------------------------------------------------------------------------
+# STRING / DISPLAY
+# ---------------------------------------------------------------------------
+
+def format_draft_one_line(d: SignalDraft) -> str:
+    return f"{get_asset_class_label(d.asset_class)} ct={d.conviction_tier} size={d.size_wei}"
+
+
+def format_record_one_line(r: SignalRecord) -> str:
+    avg = (r.vote_sum / r.vote_count) if r.vote_count else 0
+    return f"{r.signal_id[:16]}... ac={r.asset_class} smashed={r.smashed} votes={r.vote_count} avg={avg}"
+
+
+def drafts_to_markdown(drafts: List[SignalDraft]) -> str:
+    lines = ["## Signal drafts", ""]
+    for i, d in enumerate(drafts, 1):
+        lines.append(f"{i}. **{get_asset_class_label(d.asset_class)}** conviction {get_conviction_label(d.conviction_tier)} size_wei={d.size_wei}")
+    return "\n".join(lines)
+
+
+def session_to_markdown(session: AvengASession) -> str:
