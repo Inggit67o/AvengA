@@ -848,3 +848,88 @@ def submit_register_stub(
     return {
         "contract": contract_address,
         "call": abi_encode_register_signal(signal_id_hex, asset_class, conviction_tier, size_wei),
+        "status": "stub",
+    }
+
+
+def submit_vote_stub(
+    contract_address: str,
+    signal_id_hex: str,
+    score: int,
+    value_wei: int = 0,
+    signer_private_key: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Stub: in production use web3.eth.contract and send transaction with value."""
+    return {
+        "contract": contract_address,
+        "call": abi_encode_vote_conviction(signal_id_hex, score, value_wei),
+        "status": "stub",
+    }
+
+
+# ---------------------------------------------------------------------------
+# VALIDATION HELPERS EXTRA
+# ---------------------------------------------------------------------------
+
+def validate_session(session: AvengASession) -> List[str]:
+    errs: List[str] = []
+    for i, d in enumerate(session.drafts):
+        for e in validate_draft(d):
+            errs.append(f"Draft[{i}]: {e}")
+    return errs
+
+
+def validate_signal_id_hex(s: str) -> List[str]:
+    errs: List[str] = []
+    s = (s or "").strip().lower().replace("0x", "")
+    if len(s) != 64:
+        errs.append("signal_id must be 32 bytes (64 hex chars)")
+    try:
+        int(s, 16)
+    except ValueError:
+        errs.append("signal_id must be hex")
+    return errs
+
+
+# ---------------------------------------------------------------------------
+# RANDOM HELPERS (for demo diversity)
+# ---------------------------------------------------------------------------
+
+def random_signal_id_hex() -> str:
+    """Return a random 32-byte hex string (0x + 64 chars). For demo only."""
+    b = bytes(random.randint(0, 255) for _ in range(32))
+    return "0x" + b.hex()
+
+
+def random_draft() -> SignalDraft:
+    return SignalDraft(
+        asset_class=random.randint(0, HULK_MAX_ASSET_CLASS),
+        conviction_tier=random.randint(0, HULK_MAX_CONVICTION),
+        size_wei=random.randint(0, 10**21),
+        notes="",
+    )
+
+
+def random_session(num_drafts: int = 8) -> AvengASession:
+    s = AvengASession()
+    for _ in range(min(num_drafts, MAX_DRAFTS_PER_SESSION)):
+        s.drafts.append(random_draft())
+    return s
+
+
+# ---------------------------------------------------------------------------
+# EXPORT HELPERS
+# ---------------------------------------------------------------------------
+
+def session_to_dict(session: AvengASession) -> Dict[str, Any]:
+    return encode_session_to_dict(session)
+
+
+def dict_to_session(data: Dict[str, Any]) -> AvengASession:
+    return decode_session_from_dict(data)
+
+
+def save_drafts_csv(session: AvengASession, path: str) -> None:
+    export_drafts_to_csv(session.drafts, path)
+
+
