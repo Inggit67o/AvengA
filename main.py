@@ -168,3 +168,88 @@ def get_conviction_label(i: int) -> str:
     return "unknown"
 
 
+# ---------------------------------------------------------------------------
+# REPORT BUILDERS
+# ---------------------------------------------------------------------------
+
+def build_draft_report(d: SignalDraft) -> str:
+    return (
+        f"asset={get_asset_class_label(d.asset_class)} "
+        f"conviction={get_conviction_label(d.conviction_tier)} "
+        f"size_wei={d.size_wei}"
+    )
+
+
+def build_session_report(session: AvengASession) -> str:
+    lines = [f"=== {APP_NAME} Session — {HULK_TAGLINE} ===", ""]
+    lines.append(f"Drafts: {len(session.drafts)}")
+    for i, d in enumerate(session.drafts, 1):
+        lines.append(f"  [{i}] {build_draft_report(d)}")
+    lines.append("")
+    lines.append(f"Records: {len(session.records)}")
+    for r in session.records:
+        avg = (r.vote_sum / r.vote_count) if r.vote_count else 0
+        lines.append(
+            f"  {r.signal_id[:18]}... creator={r.creator[:10]}... "
+            f"ac={r.asset_class} ct={r.conviction_tier} smashed={r.smashed} votes={r.vote_count} avg={avg}"
+        )
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# CONTRACT ABI STUB (HulkAI)
+# ---------------------------------------------------------------------------
+
+def abi_encode_register_signal(
+    signal_id_hex: str,
+    asset_class: int,
+    conviction_tier: int,
+    size_wei: int,
+) -> Dict[str, Any]:
+    return {
+        "method": "registerSignal",
+        "params": {
+            "signalId": signal_id_hex,
+            "assetClass": asset_class,
+            "convictionTier": conviction_tier,
+            "sizeWei": size_wei,
+        },
+    }
+
+
+def abi_encode_smash_pick(signal_id_hex: str) -> Dict[str, Any]:
+    return {"method": "smashPick", "params": {"signalId": signal_id_hex}}
+
+
+def abi_encode_vote_conviction(
+    signal_id_hex: str,
+    score: int,
+    fee_wei: int = 0,
+) -> Dict[str, Any]:
+    return {
+        "method": "voteConviction",
+        "params": {"signalId": signal_id_hex, "score": score},
+        "valueWei": fee_wei,
+    }
+
+
+# ---------------------------------------------------------------------------
+# GAS ESTIMATES (approximate)
+# ---------------------------------------------------------------------------
+
+GAS_REGISTER_SIGNAL = 280_000
+GAS_SMASH_PICK = 85_000
+GAS_VOTE_CONVICTION = 140_000
+GAS_RETIRE_SIGNAL = 65_000
+
+
+def get_gas_estimates() -> Dict[str, int]:
+    return {
+        "registerSignal": GAS_REGISTER_SIGNAL,
+        "smashPick": GAS_SMASH_PICK,
+        "voteConviction": GAS_VOTE_CONVICTION,
+        "retireSignal": GAS_RETIRE_SIGNAL,
+    }
+
+
+# ---------------------------------------------------------------------------
