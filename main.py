@@ -1018,3 +1018,88 @@ def encode_drafts_for_register(
     out: List[Dict[str, Any]] = []
     for i, d in enumerate(drafts):
         signal_id = derive_signal_id(creator_hex, nonce_start + i, salt_hex)
+        out.append(
+            abi_encode_register_signal(
+                signal_id,
+                clamp_asset_class(d.asset_class),
+                clamp_conviction(d.conviction_tier),
+                max(0, d.size_wei),
+            )
+        )
+    return out
+
+
+# ---------------------------------------------------------------------------
+# DEMO: LOAD AND REPORT
+# ---------------------------------------------------------------------------
+
+def run_load_and_report(path: str) -> None:
+    session = load_session_from_file(path)
+    print(build_session_report(session))
+
+
+# ---------------------------------------------------------------------------
+# CLI LOAD/SAVE (optional args)
+# ---------------------------------------------------------------------------
+
+def handle_cli_load(path: str) -> AvengASession:
+    return load_session_from_file(path)
+
+
+def handle_cli_save(session: AvengASession, path: str) -> None:
+    save_session_to_file(session, path)
+
+
+# ---------------------------------------------------------------------------
+# GAMMA / HULK THEME CONSTANTS
+# ---------------------------------------------------------------------------
+
+GAMMA_TIER_LABELS = CONVICTION_TIER_LABELS
+SMASH_STATUS_LABEL = "smashed"
+RETIRED_STATUS_LABEL = "retired"
+ACTIVE_STATUS_LABEL = "active"
+
+
+def get_gamma_tier_label(i: int) -> str:
+    return get_conviction_label(i)
+
+
+def is_smashed(r: SignalRecord) -> bool:
+    return r.smashed
+
+
+def is_retired(r: SignalRecord) -> bool:
+    return r.retired
+
+
+def is_active(r: SignalRecord) -> bool:
+    return not r.retired
+
+
+# ---------------------------------------------------------------------------
+# NUMERIC HELPERS
+# ---------------------------------------------------------------------------
+
+def wei_to_ether(wei: int) -> float:
+    return wei / 1e18
+
+
+def ether_to_wei(ether: float) -> int:
+    return int(ether * 1e18)
+
+
+def format_wei(wei: int) -> str:
+    if wei >= 1e18:
+        return f"{wei / 1e18:.4f} ETH"
+    return f"{wei} wei"
+
+
+# ---------------------------------------------------------------------------
+# SESSION COMPACT SUMMARY
+# ---------------------------------------------------------------------------
+
+def session_compact_summary(session: AvengASession) -> str:
+    total_size = session_total_size_wei(session)
+    return (
+        f"Drafts={len(session.drafts)} Records={len(session.records)} "
+        f"TotalSizeWei={total_size} ({format_wei(total_size)})"
