@@ -1188,3 +1188,88 @@ def record_vote_sum(r: SignalRecord) -> int:
 
 
 def record_average_score(r: SignalRecord) -> float:
+    return average_vote_score(r)
+
+
+# ---------------------------------------------------------------------------
+# GAS ESTIMATE HELPERS
+# ---------------------------------------------------------------------------
+
+def estimate_register_gas() -> int:
+    return GAS_REGISTER_SIGNAL
+
+
+def estimate_smash_gas() -> int:
+    return GAS_SMASH_PICK
+
+
+def estimate_vote_gas() -> int:
+    return GAS_VOTE_CONVICTION
+
+
+def estimate_retire_gas() -> int:
+    return GAS_RETIRE_SIGNAL
+
+
+def get_all_gas_estimates() -> Dict[str, int]:
+    return get_gas_estimates()
+
+
+# ---------------------------------------------------------------------------
+# ERROR CODE LOOKUP
+# ---------------------------------------------------------------------------
+
+def error_code_list() -> List[str]:
+    return list(ERROR_CODES.keys())
+
+
+def error_description(code: str) -> str:
+    return get_error_description(code)
+
+
+def has_error_code(code: str) -> bool:
+    return code in ERROR_CODES
+
+
+# ---------------------------------------------------------------------------
+# CONFIG DEFAULTS
+# ---------------------------------------------------------------------------
+
+DEFAULT_FEE_BPS = 50
+DEFAULT_GAS_LIMIT_REGISTER = 350_000
+DEFAULT_GAS_LIMIT_VOTE = 180_000
+
+
+def default_fee_bps() -> int:
+    return DEFAULT_FEE_BPS
+
+
+def default_gas_limit_register() -> int:
+    return DEFAULT_GAS_LIMIT_REGISTER
+
+
+def default_gas_limit_vote() -> int:
+    return DEFAULT_GAS_LIMIT_VOTE
+
+
+# ---------------------------------------------------------------------------
+# SIGNAL ID HELPERS
+# ---------------------------------------------------------------------------
+
+def signal_id_to_short(s: str, length: int = 16) -> str:
+    s = (s or "").replace("0x", "")
+    if len(s) <= length:
+        return s
+    return s[: length // 2] + "..." + s[-(length - length // 2 - 3) :]
+
+
+def signal_id_valid_hex(s: str) -> bool:
+    return len(validate_signal_id_hex(s)) == 0
+
+
+# ---------------------------------------------------------------------------
+# SESSION PREDICATES
+# ---------------------------------------------------------------------------
+
+def session_has_drafts(session: AvengASession) -> bool:
+    return len(session.drafts) > 0
