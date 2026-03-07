@@ -678,3 +678,88 @@ def create_btc_eth_draft() -> SignalDraft:
 def create_defi_draft() -> SignalDraft:
     return SignalDraft(asset_class=3, conviction_tier=2, size_wei=500 * 10**15, notes="DeFi")
 
+
+def create_meme_draft() -> SignalDraft:
+    return SignalDraft(asset_class=4, conviction_tier=5, size_wei=100 * 10**15, notes="Meme")
+
+
+def run_validation_demo() -> None:
+    session = create_demo_session()
+    for d in session.drafts:
+        errs = validate_draft(d)
+        if errs:
+            print(f"Draft {build_draft_report(d)}: {errs}")
+        else:
+            print(f"OK: {build_draft_report(d)}")
+
+
+# ---------------------------------------------------------------------------
+# MAIN WITH ALL FLAGS
+# ---------------------------------------------------------------------------
+
+if __name__ == "__main__":
+    argv = sys.argv[1:]
+    if "--help" in argv or "-h" in argv:
+        print_usage()
+        sys.exit(0)
+    if "--version" in argv or "-v" in argv:
+        print(f"{APP_NAME} {APP_VERSION}")
+        sys.exit(0)
+    if "--demo" in argv:
+        run_demo()
+        sys.exit(0)
+    if "--gas" in argv:
+        for name, gas in get_gas_estimates().items():
+            print(f"  {name}: {gas}")
+        sys.exit(0)
+    if "--runbook" in argv:
+        handle_cli_runbook()
+        sys.exit(0)
+    if "--errors" in argv:
+        handle_cli_errors()
+        sys.exit(0)
+    sys.exit(main(argv))
+
+
+# ---------------------------------------------------------------------------
+# SESSION STATS
+# ---------------------------------------------------------------------------
+
+def session_draft_count(session: AvengASession) -> int:
+    return len(session.drafts)
+
+
+def session_record_count(session: AvengASession) -> int:
+    return len(session.records)
+
+
+def session_drafts_by_asset_class(session: AvengASession, asset_class: int) -> List[SignalDraft]:
+    return [d for d in session.drafts if d.asset_class == asset_class]
+
+
+def session_drafts_by_conviction(session: AvengASession, conviction_tier: int) -> List[SignalDraft]:
+    return [d for d in session.drafts if d.conviction_tier == conviction_tier]
+
+
+def session_total_size_wei(session: AvengASession) -> int:
+    return sum(d.size_wei for d in session.drafts)
+
+
+def session_smashed_records(session: AvengASession) -> List[SignalRecord]:
+    return [r for r in session.records if r.smashed]
+
+
+def session_active_records(session: AvengASession) -> List[SignalRecord]:
+    return [r for r in session.records if not r.retired]
+
+
+# ---------------------------------------------------------------------------
+# ABI FRAGMENT (HulkAI) — for reference
+# ---------------------------------------------------------------------------
+
+HULKAI_ABI_REGISTER = [
+    {
+        "inputs": [
+            {"internalType": "bytes32", "name": "signalId", "type": "bytes32"},
+            {"internalType": "uint8", "name": "assetClass", "type": "uint8"},
+            {"internalType": "uint8", "name": "convictionTier", "type": "uint8"},
